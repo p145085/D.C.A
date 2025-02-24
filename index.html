@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dollar Cost Averaging Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .entry-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .entry-row select, .entry-row input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 8px 16px;
+            margin: 10px 0;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .remove-btn {
+            background-color: #f44336;
+        }
+
+        .remove-btn:hover {
+            background-color: #da190b;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .dca-container {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .dca-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .dca-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            border: none;
+            background: transparent;
+            padding: 5px;
+            width: 200px;
+        }
+
+        .dca-title:focus {
+            outline: 1px solid #4CAF50;
+            background: white;
+        }
+
+        .remove-dca-btn {
+            background-color: #f44336;
+            padding: 5px 10px;
+            font-size: 0.9em;
+        }
+
+        #add-new-dca {
+            background-color: #2196F3;
+            margin: 20px 0;
+            font-size: 1.1em;
+        }
+
+        #add-new-dca:hover {
+            background-color: #1976D2;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .action-buttons button {
+            flex: 1;
+            background-color: #2196F3;
+            font-size: 1.1em;
+            margin: 20px 0;
+        }
+
+        .action-buttons button:hover {
+            background-color: #1976D2;
+        }
+
+        #import-input {
+            display: none;
+        }
+
+        .export-import-btn {
+            background-color: #2196F3;
+        }
+
+        .export-import-btn:hover {
+            background-color: #1976D2;
+        }
+
+        .input-mode-select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+            background-color: white;
+        }
+
+        .entry-row.no-price input:nth-of-type(2) {
+            background-color: #f0f0f0;
+        }
+
+        .wallet-info {
+            width: 100%;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-sizing: border-box;
+            margin-top: 20px;
+        }
+
+        .qr-code {
+            width: 128px;
+            height: 128px;
+        }
+
+        .wallet-address {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .wallet-address span {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .wallet-address code {
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .entry-headers {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .entry-headers span {
+            padding: 8px;
+        }
+
+        .header-operation {
+            width: 180px;  /* Adjust based on the input-mode-select width */
+        }
+
+        .header-trade {
+            width: 80px;   /* Adjust based on the buy/sell select width */
+        }
+
+        .header-amount {
+            flex: 1;
+        }
+
+        .header-price {
+            flex: 1;
+        }
+
+        .header-action {
+            width: 35px;  /* Width of the remove button */
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+</head>
+<body>
+    <h1>Dollar Cost Averaging Calculator</h1>
+    
+    <p>
+        This calculator is designed to help you calculate the average price per unit of a security when you are dollar cost averaging.
+        <br>
+        It is useful for calculating the average price of a security when you are buying and selling it multiple times. 
+        <br>
+        You can use either comma (,) or period (.) as decimal marker. Scientific notation is also supported - e.g "1,23e-8" or "1.23e-8" = "0.0000000123".
+    </p>
+
+    <div class="action-buttons">
+        <button id="add-new-dca" onclick="addNewDCASet()">+ Add New Asset</button>
+        <button class="export-import-btn" onclick="exportData()">Export Data</button>
+        <button class="export-import-btn" onclick="document.getElementById('import-input').click()">Import Data</button>
+        <input type="file" id="import-input" accept=".json" onchange="importData(event)">
+    </div>
+
+    <div id="dca-sets-container"></div>
+
+    <div class="wallet-info">
+        <div class="qr-code" id="qrcode"></div>
+        <div class="wallet-address">
+            <span>Donate to the developers Metamask (ERC-20) (BSC):</span>
+            <code>0xaf8817fe4ec64888f8a4586cf6b1432058a80066</code>
+        </div>
+    </div>
+
+    <script>
+        // Template for a new DCA set
+        const dcaSetTemplate = `
+            <div class="dca-header">
+                <input type="text" class="dca-title" value="New Asset" onchange="saveState()">
+                <button class="remove-btn remove-dca-btn" onclick="removeDCASet(this)">Remove Asset</button>
+            </div>
+            <div class="entries-container">
+                <div class="entry-headers">
+                    <span class="header-operation">Operation</span>
+                    <span class="header-trade">Trade</span>
+                    <span class="header-amount">Amount</span>
+                    <span class="header-price">Price</span>
+                    <span class="header-action"></span>
+                </div>
+                <div class="entry-row">
+                    <select class="input-mode-select" onchange="handleInputModeChange(this)">
+                        <option value="per-unit">Per Unit Price</option>
+                        <option value="total-value">Total Value</option>
+                        <option value="no-price">No Price (Airdrop/Mining)</option>
+                    </select>
+                    <select>
+                        <option value="buy">Buy</option>
+                        <option value="sell">Sell</option>
+                    </select>
+                    <input type="text" placeholder="Number of units" required>
+                    <input type="text" placeholder="Price per unit" required>
+                    <button class="remove-btn" onclick="removeEntry(this)">X</button>
+                </div>
+            </div>
+            <button onclick="addEntry(this)">+ Add Entry</button>
+            <button onclick="calculate(this)">Calculate Average</button>
+            <div class="result"></div>
+        `;
+
+        function addNewDCASet() {
+            const container = document.getElementById('dca-sets-container');
+            const newSet = document.createElement('div');
+            newSet.className = 'dca-container';
+            newSet.innerHTML = dcaSetTemplate;
+            container.appendChild(newSet);
+            saveState();
+        }
+
+        function removeDCASet(button) {
+            if (confirm('Are you sure you want to remove this asset?')) {
+                button.closest('.dca-container').remove();
+                saveState();
+            }
+        }
+
+        function handleInputModeChange(select) {
+            const row = select.closest('.entry-row');
+            const priceInput = row.querySelector('input:nth-of-type(2)');
+            const typeSelect = row.querySelector('select:nth-of-type(2)');
+            
+            row.classList.remove('no-price', 'total-value', 'per-unit');
+            row.classList.add(select.value);
+
+            switch(select.value) {
+                case 'no-price':
+                    priceInput.value = '0';
+                    priceInput.disabled = true;
+                    priceInput.placeholder = 'No price (airdrop/mining)';
+                    typeSelect.value = 'buy';
+                    typeSelect.disabled = true;
+                    break;
+                case 'total-value':
+                    priceInput.disabled = false;
+                    priceInput.placeholder = 'Total value';
+                    typeSelect.disabled = false;
+                    break;
+                case 'per-unit':
+                    priceInput.disabled = false;
+                    priceInput.placeholder = 'Price per unit';
+                    typeSelect.disabled = false;
+                    break;
+            }
+            saveState();
+        }
+
+        function addEntry(button) {
+            const container = button.previousElementSibling;
+            const newRow = document.createElement('div');
+            newRow.className = 'entry-row';
+            newRow.innerHTML = `
+                <select class="input-mode-select" onchange="handleInputModeChange(this)">
+                    <option value="per-unit">Per Unit Price</option>
+                    <option value="total-value">Total Value</option>
+                    <option value="no-price">No Price (Airdrop/Mining)</option>
+                </select>
+                <select>
+                    <option value="buy">Buy</option>
+                    <option value="sell">Sell</option>
+                </select>
+                <input type="text" placeholder="Number of units" required>
+                <input type="text" placeholder="Price per unit" required>
+                <button class="remove-btn" onclick="removeEntry(this)">X</button>
+            `;
+            container.appendChild(newRow);
+            saveState();
+        }
+
+        function removeEntry(button) {
+            const row = button.parentElement;
+            const container = row.parentElement;
+            if (container.getElementsByClassName('entry-row').length > 1) {
+                row.remove();
+                saveState();
+            }
+        }
+
+        function parseNumberInput(str) {
+            // Replace comma with period for decimal parsing
+            str = str.trim().replace(',', '.');
+            return new Decimal(str);
+        }
+
+        function formatDecimal(decimal) {
+            // Convert to string without scientific notation, showing all significant digits
+            let str = decimal.toFixed(32);
+            
+            // Remove trailing zeros after decimal point
+            str = str.replace(/\.?0+$/, '');
+            
+            // If it's a whole number (no decimals), add .0 for readability
+            if (!str.includes('.')) {
+                str += '.0';
+            }
+            
+            return str;
+        }
+
+        function calculate(button) {
+            const container = button.closest('.dca-container');
+            const rows = container.getElementsByClassName('entry-row');
+            let runningUnits = new Decimal(0);
+            let runningCost = new Decimal(0);
+
+            for (const row of rows) {
+                const inputMode = row.querySelector('.input-mode-select').value;
+                const type = row.querySelector('select:nth-of-type(2)').value;
+                const unitsStr = row.querySelector('input:nth-of-type(1)').value.trim();
+                const valueStr = row.querySelector('input:nth-of-type(2)').value.trim();
+
+                try {
+                    const units = parseNumberInput(unitsStr);
+                    let transactionValue;
+                    let price;
+
+                    if (!units || units.isNaN() || units.isZero()) {
+                        alert('Please enter a valid number of units');
+                        return;
+                    }
+
+                    switch(inputMode) {
+                        case 'no-price':
+                            transactionValue = new Decimal(0);
+                            price = new Decimal(0);
+                            break;
+                        case 'total-value':
+                            transactionValue = parseNumberInput(valueStr);
+                            if (!transactionValue || transactionValue.isNaN()) {
+                                alert('Please enter a valid total value');
+                                return;
+                            }
+                            price = transactionValue.dividedBy(units);
+                            break;
+                        case 'per-unit':
+                            price = parseNumberInput(valueStr);
+                            if (!price || price.isNaN()) {
+                                alert('Please enter a valid price per unit');
+                                return;
+                            }
+                            transactionValue = price.times(units);
+                            break;
+                    }
+
+                    if (type === 'buy' || inputMode === 'no-price') {
+                        runningUnits = runningUnits.plus(units);
+                        runningCost = runningCost.plus(transactionValue);
+                    } else {
+                        if (units.greaterThan(runningUnits)) {
+                            alert(`Cannot sell ${formatDecimal(units)} units when you only have ${formatDecimal(runningUnits)} units available.`);
+                            return;
+                        }
+                        const sellRatio = units.dividedBy(runningUnits);
+                        runningCost = runningCost.minus(runningCost.times(sellRatio));
+                        runningUnits = runningUnits.minus(units);
+                    }
+                } catch (e) {
+                    console.error('Calculation error:', e);
+                    alert('Please enter valid numbers. You can use either , or . as decimal marker. Scientific notation is also supported (e.g., 1.23e-8)');
+                    return;
+                }
+            }
+
+            const resultDiv = container.querySelector('.result');
+            
+            if (runningUnits.isZero()) {
+                resultDiv.textContent = 'Position is fully closed (0 units remaining).';
+            } else if (runningUnits.isNegative()) {
+                resultDiv.textContent = 'Error: Negative position detected. Please check your entries.';
+            } else {
+                const averagePrice = runningCost.dividedBy(runningUnits);
+                resultDiv.textContent = `Average Price: $${formatDecimal(averagePrice)} per unit`;
+                resultDiv.innerHTML += `<br>Net Position: ${formatDecimal(runningUnits)} units`;
+                resultDiv.innerHTML += `<br>Total Cost Basis: $${formatDecimal(runningCost)}`;
+            }
+        }
+
+        function saveState() {
+            const container = document.getElementById('dca-sets-container');
+            const state = {
+                html: container.innerHTML,
+                data: getAllInputData()
+            };
+            localStorage.setItem('dcaCalculatorState', JSON.stringify(state));
+        }
+
+        function getAllInputData() {
+            const data = [];
+            const containers = document.getElementsByClassName('dca-container');
+            
+            for (const container of containers) {
+                const assetData = {
+                    title: container.querySelector('.dca-title').value,
+                    entries: []
+                };
+
+                const rows = container.getElementsByClassName('entry-row');
+                for (const row of rows) {
+                    assetData.entries.push({
+                        inputMode: row.querySelector('.input-mode-select').value,
+                        type: row.querySelector('select:nth-of-type(2)').value,
+                        units: row.querySelector('input:nth-of-type(1)').value,
+                        price: row.querySelector('input:nth-of-type(2)').value
+                    });
+                }
+
+                data.push(assetData);
+            }
+
+            return data;
+        }
+
+        function loadState() {
+            try {
+                const savedState = localStorage.getItem('dcaCalculatorState');
+                if (savedState) {
+                    const state = JSON.parse(savedState);
+                    document.getElementById('dca-sets-container').innerHTML = state.html;
+                    
+                    // Restore input values
+                    const containers = document.getElementsByClassName('dca-container');
+                    state.data.forEach((assetData, i) => {
+                        if (containers[i]) {
+                            containers[i].querySelector('.dca-title').value = assetData.title;
+                            const rows = containers[i].getElementsByClassName('entry-row');
+                            assetData.entries.forEach((entry, j) => {
+                                if (rows[j]) {
+                                    rows[j].querySelector('.input-mode-select').value = entry.inputMode;
+                                    rows[j].querySelector('select:nth-of-type(2)').value = entry.type;
+                                    rows[j].querySelector('input:nth-of-type(1)').value = entry.units;
+                                    rows[j].querySelector('input:nth-of-type(2)').value = entry.price;
+                                    handleInputModeChange(rows[j].querySelector('.input-mode-select'));
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    addNewDCASet(); // Add one set by default
+                }
+            } catch (e) {
+                console.error('Error loading saved state:', e);
+                addNewDCASet();
+            }
+        }
+
+        function exportData() {
+            const data = getAllInputData();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'dca-calculator-data.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        document.getElementById('dca-sets-container').innerHTML = '';
+                        
+                        data.forEach(assetData => {
+                            const container = document.createElement('div');
+                            container.className = 'dca-container';
+                            container.innerHTML = dcaSetTemplate;
+                            document.getElementById('dca-sets-container').appendChild(container);
+                            
+                            container.querySelector('.dca-title').value = assetData.title;
+                            
+                            // Remove the default first row
+                            container.querySelector('.entries-container').innerHTML = '';
+                            
+                            assetData.entries.forEach(entry => {
+                                const newRow = document.createElement('div');
+                                newRow.className = 'entry-row';
+                                newRow.innerHTML = `
+                                    <select class="input-mode-select" onchange="handleInputModeChange(this)">
+                                        <option value="per-unit">Per Unit Price</option>
+                                        <option value="total-value">Total Value</option>
+                                        <option value="no-price">No Price (Airdrop/Mining)</option>
+                                    </select>
+                                    <select>
+                                        <option value="buy">Buy</option>
+                                        <option value="sell">Sell</option>
+                                    </select>
+                                    <input type="text" placeholder="Number of units" required>
+                                    <input type="text" placeholder="Price per unit" required>
+                                    <button class="remove-btn" onclick="removeEntry(this)">X</button>
+                                `;
+                                container.querySelector('.entries-container').appendChild(newRow);
+                                
+                                newRow.querySelector('.input-mode-select').value = entry.inputMode;
+                                newRow.querySelector('select:nth-of-type(2)').value = entry.type;
+                                newRow.querySelector('input:nth-of-type(1)').value = entry.units;
+                                newRow.querySelector('input:nth-of-type(2)').value = entry.price;
+                                handleInputModeChange(newRow.querySelector('.input-mode-select'));
+                            });
+                        });
+                        
+                        saveState();
+                        alert('Data imported successfully!');
+                    } catch (e) {
+                        console.error('Error importing data:', e);
+                        alert('Error importing data. Please check the file format.');
+                    }
+                };
+                reader.readAsText(file);
+            }
+            // Reset the input so the same file can be imported again
+            event.target.value = '';
+        }
+
+        // Add input event listeners to save state when values change
+        document.addEventListener('input', function(e) {
+            if (e.target.matches('.entry-row input') || 
+                e.target.matches('.entry-row select') || 
+                e.target.matches('.dca-title')) {
+                saveState();
+            }
+        });
+
+        // Add QR code initialization
+        window.addEventListener('DOMContentLoaded', (event) => {
+            // Initialize QR code
+            new QRCode(document.getElementById("qrcode"), {
+                text: "0xaf8817fe4ec64888f8a4586cf6b1432058a80066",
+                width: 128,
+                height: 128,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // Existing DOMContentLoaded handlers if any...
+            loadState();
+        });
+    </script>
+</body>
+</html> 
