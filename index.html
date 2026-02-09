@@ -208,6 +208,132 @@
         .header-action {
             width: 35px;  /* Width of the remove button */
         }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                margin: 10px auto;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            p {
+                font-size: 0.9em;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-buttons button {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            #add-new-dca {
+                margin: 10px 0;
+            }
+
+            .dca-container {
+                padding: 15px;
+            }
+
+            .dca-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .dca-title {
+                width: 100%;
+                font-size: 1.3em;
+            }
+
+            .remove-dca-btn {
+                width: 100%;
+            }
+
+            .entry-headers {
+                display: none;
+            }
+
+            .entry-row {
+                flex-direction: column;
+                gap: 8px;
+                border: 1px solid #e0e0e0;
+                padding: 10px;
+                border-radius: 8px;
+                background-color: white;
+                margin-bottom: 15px;
+            }
+
+            .entry-row select,
+            .entry-row input {
+                width: 100%;
+                font-size: 16px;
+                min-height: 44px;
+            }
+
+            .input-mode-select {
+                width: 100%;
+                margin-right: 0;
+            }
+
+            button {
+                width: 100%;
+                min-height: 44px;
+                font-size: 16px;
+                margin: 5px 0;
+            }
+
+            .wallet-info {
+                flex-direction: column;
+                text-align: center;
+                padding: 15px;
+            }
+
+            .wallet-address {
+                width: 100%;
+            }
+
+            .wallet-address code {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+                margin: 5px auto;
+            }
+
+            h1 {
+                font-size: 1.3em;
+            }
+
+            p {
+                font-size: 0.85em;
+            }
+
+            .dca-container {
+                padding: 10px;
+            }
+
+            .dca-title {
+                font-size: 1.2em;
+            }
+
+            #result {
+                font-size: 1em;
+            }
+
+            .entry-row {
+                padding: 8px;
+            }
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
