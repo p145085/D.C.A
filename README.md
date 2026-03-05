@@ -1,7 +1,6 @@
 # Dollar Cost Averaging (DCA) Calculator
 
 A web-based calculator that helps investors track and calculate their average purchase price across multiple buy and sell transactions. Perfect for cryptocurrency and stock investments.
-Available at https://populus.ddns.net/D.C.A/
 
 ## Features
 
